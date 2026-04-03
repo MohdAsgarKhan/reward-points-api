@@ -24,17 +24,17 @@ public class RewardServiceImpl implements RewardService {
     @Override
     public List<RewardResponse> calculateRewards(LocalDate startDate, LocalDate endDate) {
 
-        // ✅ Step 1: Use temp variables (modifiable)
+        
         LocalDate tempStartDate = startDate;
         LocalDate tempEndDate = endDate;
 
-        // ✅ Default: last 3 months
+        // last 3 months
         if (tempStartDate == null && tempEndDate == null) {
             tempEndDate = LocalDate.now();
             tempStartDate = tempEndDate.minusMonths(3);
         }
 
-        // ✅ Validation
+        //Validating
         if (tempStartDate == null || tempEndDate == null) {
             throw new DateRangeException("Both startDate and endDate must be provided");
         }
@@ -43,19 +43,19 @@ public class RewardServiceImpl implements RewardService {
             throw new DateRangeException("Start date cannot be after end date");
         }
 
-        // ✅ Strict 3-month rule
+        
         if (tempStartDate.plusMonths(3).isBefore(tempEndDate)) {
             throw new DateRangeException("Date range cannot exceed 3 months");
         }
 
-        // ✅ Step 2: FINAL variables (fix lambda issue)
+        
         final LocalDate resolvedStartDate = tempStartDate;
         final LocalDate resolvedEndDate = tempEndDate;
 
-        // ✅ Fetch transactions
+        // fetchinf transaction 
         List<Transaction> transactions = transactionRepository.getTransaction();
 
-        // ✅ Filter transactions using correct getter
+        
         List<Transaction> filteredTransactions = transactions.stream()
                 .filter(t -> t.getTransactionDate() != null) // safety check
                 .filter(t -> !t.getTransactionDate().isBefore(resolvedStartDate) &&
@@ -66,7 +66,7 @@ public class RewardServiceImpl implements RewardService {
             throw new ResourceNotFoundException("No transactions found for given criteria");
         }
 
-        // ✅ Group by customerId and YearMonth
+        
         Map<Integer, Map<YearMonth, Integer>> customerMonthlyPoints = new HashMap<>();
 
         for (Transaction t : filteredTransactions) {
@@ -80,7 +80,7 @@ public class RewardServiceImpl implements RewardService {
                     .merge(yearMonth, points, Integer::sum);
         }
 
-        // ✅ Sort response: customerId → YearMonth
+    
         List<RewardResponse> response = customerMonthlyPoints.entrySet()
                 .stream()
                 .sorted(Map.Entry.comparingByKey()) // customerId sort
@@ -112,7 +112,7 @@ public class RewardServiceImpl implements RewardService {
         return response;
     }
 
-    // ✅ Null-safe reward calculation
+    
     private int calculatePoints(BigDecimal amount) {
 
         if (amount == null) {
